@@ -58,7 +58,8 @@ if [ -n "$mapping" ] && [ -f "$mapping" ]; then
     ' "$mapping" "$work/raw.txt" >"$work/named.txt"
     mv "$work/named.txt" "$work/raw.txt"
 fi
-grep -v '^java\.util\.logging' "$work/raw.txt" | sort | uniq -c | sort -k2,2 -k3,3 >"$work/java.txt" || true
+# Log.getStackTraceString only makes text; it writes nothing.
+grep -v -e '^java\.util\.logging' -e '^android\.util\.Log\.getStackTraceString' "$work/raw.txt" | sort | uniq -c | sort -k2,2 -k3,3 >"$work/java.txt" || true
 grep '^java\.util\.logging' "$work/raw.txt" | sort | uniq -c | sort -k2,2 -k3,3 >"$work/jul.txt" || true
 if [ -s "$work/java.txt" ]; then
     found=1
