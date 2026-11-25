@@ -40,14 +40,14 @@
 # No logs: calls to Android's log, and stack traces printed (which Android
 # logs too), are taken out of the app as built.
 -assumenosideeffects class android.util.Log {
-    public static boolean isLoggable(java.lang.String, int);
-    public static int v(...);
-    public static int d(...);
-    public static int i(...);
-    public static int w(...);
-    public static int e(...);
-    public static int wtf(...);
-    public static int println(...);
+    public static boolean isLoggable(java.lang.String, int) return false;
+    public static int v(...) return 0;
+    public static int d(...) return 0;
+    public static int i(...) return 0;
+    public static int w(...) return 0;
+    public static int e(...) return 0;
+    public static int wtf(...) return 0;
+    public static int println(...) return 0;
 }
 -assumenosideeffects class java.lang.Throwable {
     public void printStackTrace();

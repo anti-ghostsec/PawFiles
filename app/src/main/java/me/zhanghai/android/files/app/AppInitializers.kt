@@ -40,6 +40,11 @@ private fun initializeQuietCrashes() {
         android.os.Process.killProcess(android.os.Process.myPid())
         kotlin.system.exitProcess(10)
     }
+    // Android sends java.util.logging (which some libraries use) to its log.
+    // With no handlers and the level off, nothing logged that way goes
+    // anywhere.
+    java.util.logging.LogManager.getLogManager().reset()
+    java.util.logging.Logger.getLogger("").level = java.util.logging.Level.OFF
 }
 
 private fun disableHiddenApiChecks() {

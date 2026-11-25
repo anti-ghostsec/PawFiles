@@ -23,10 +23,13 @@ It keeps what makes Material Files good:
 - **No crash reporting or analytics.** The Firebase build (Analytics and
   Crashlytics) is gone.
 - **No logs.** Release builds strip every call to Android's log, and every
-  printed stack trace, from the app and its libraries. The app's own native
-  code logs nothing. A crash just closes the app, without Android's crash
-  report in the phone's log. (Native code inside third-party libraries,
-  such as libarchive, isn't covered by this.)
+  printed stack trace, from the app and its libraries. Java's own logging,
+  which Android also sends to its log, is switched off as the app starts.
+  The native libraries that come built (libarchive's and libselinux's) are
+  relinked to a stand-in for Android's log that does nothing, and the
+  app's own native code logs nothing. A crash just closes the app, without
+  Android's crash report in the phone's log. Every release build checks the
+  APK for anything left that could log (`tools/log-audit.sh`).
 - **No backups.** Nothing of the app's (settings, bookmarks) goes to cloud
   backups or device transfers.
 - **Its own app.** It's called "Files", with its own icon and app ID

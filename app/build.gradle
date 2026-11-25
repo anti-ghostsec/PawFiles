@@ -151,3 +151,42 @@ dependencies {
     implementation 'me.zhanghai.android.retrofile:library:1.2.0'
     implementation 'me.zhanghai.android.systemuihelper:library:1.0.0'
 }
+
+// No logs from native code either. libarchive-jni and libselinux-jni come
+// built, linked to Android's log (liblog.so). After they're stripped, and
+// before they go into the APK, each one's link to liblog.so becomes a link
+// to libnlg.so (the same length), which the app builds from
+// src/main/jni/nlg.c: the same functions, doing nothing. The name is in
+// the library just once, as a string in its dynamic section, or the build
+// fails here; tools/log-audit.sh checks the result in every release.
+def silenceNativeLogs(File so) {
+    byte[] bytes = so.bytes
+    String text = new String(bytes, 'ISO-8859-1')
+    String from = 'liblog.so\u0000'
+    String to = 'libnlg.so\u0000'
+    int at = text.indexOf(from)
+    if (at < 0) {
+        return
+    }
+    if (text.indexOf(from, at + 1) >= 0 || at == 0 || text.charAt(at - 1) != '\u0000' as char) {
+        throw new GradleException("silenceNativeLogs: can't safely relink ${so.name} away from liblog.so")
+    }
+    System.arraycopy(to.getBytes('ISO-8859-1'), 0, bytes, at, to.length())
+    so.bytes = bytes
+}
+
+tasks.configureEach { task ->
+    if (task.name ==~ /strip\w*DebugSymbols/) {
+        task.doLast {
+            task.outputs.files.files.each { out ->
+                if (out.isDirectory()) {
+                    out.eachFileRecurse(groovy.io.FileType.FILES) { f ->
+                        if (f.name.endsWith('.so')) {
+                            silenceNativeLogs(f)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
