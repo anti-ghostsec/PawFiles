@@ -1,0 +1,130 @@
+# Every push to main that builds publishes a ready-built Files for Android,
+# signed with Files' key, as the newest release.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Only the job that publishes may write to the repository.
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  # The build (Gradle and everything it downloads) never sees the signing
+  # key: it hands the unsigned APK to the next job, which signs and
+  # publishes it on a runner of its own and runs none of the build's code.
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # The version code counts commits.
+          fetch-depth: 0
+          persist-credentials: false
+
+      # gradle-wrapper.jar is the one Gradle publishes, not a changed copy.
+      - uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Build
+        run: |
+          set -eu
+          export JAVA_HOME="$JAVA_HOME_21_X64" PATH="$JAVA_HOME_21_X64/bin:$PATH"
+          sdk="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$sdk" --licenses >/dev/null || true
+          "$sdk" --install "platforms;android-37.2" "build-tools;37.0.0" "build-tools;36.0.0" "ndk;30.0.16248370" "cmake;3.22.1" >/dev/null
+          ./gradlew --no-daemon \
+            -PversionCode="$(git rev-list --count "$GITHUB_SHA")" \
+            -PversionName="0.1.0-$(echo "$GITHUB_SHA" | cut -c1-7)" \
+            assembleRelease
+          ls app/build/outputs/apk/release/
+          apk=$(ls app/build/outputs/apk/release/*.apk | head -n 1)
+          cp "$apk" files-unsigned.apk
+          # Files can't reach the internet: no permission for it in the app
+          # as built (whatever a library asked for), so Android refuses it.
+          perms=$("$ANDROID_HOME/build-tools/36.0.0/aapt2" dump permissions files-unsigned.apk)
+          echo "$perms"
+          if echo "$perms" | grep -E 'android\.permission\.(INTERNET|ACCESS_NETWORK_STATE|ACCESS_WIFI_STATE|CHANGE_NETWORK_STATE|CHANGE_WIFI_STATE|ACCESS_FINE_LOCATION|ACCESS_COARSE_LOCATION|READ_CONTACTS|READ_PHONE_STATE|CAMERA|RECORD_AUDIO)'; then
+            echo "Files must not have network (or other personal) permissions" >&2
+            exit 1
+          fi
+
+      # Nothing that reaches out: no network code of its own, no crash
+      # reporting or analytics.
+      - name: Privacy check
+        run: |
+          set -eu
+          if grep -rnE 'java\.net\.(URL|HttpURLConnection|Socket|ServerSocket|DatagramSocket)\b|okhttp3|javax\.net\.|firebase|crashlytics|analytics' app/src/main/java; then
+            echo "Files has no network code, crash reporting or analytics" >&2
+            exit 1
+          fi
+          if grep -rnE 'firebase|crashlytics|google-services|smbj|sshj|jcifs|dav4jvm|ftpserver|commons-net' app/build.gradle build.gradle; then
+            echo "Files has no network libraries, crash reporting or analytics" >&2
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: unsigned
+          path: files-unsigned.apk
+          if-no-files-found: error
+          retention-days: 1
+
+  sign:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: unsigned
+          path: unsigned
+
+      - name: Sign
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          set -eu
+          [ -n "$ANDROID_KEYSTORE" ] || { echo "ANDROID_KEYSTORE isn't set: no APK without a signature" >&2; exit 1; }
+          export PATH="$JAVA_HOME_21_X64/bin:$PATH"
+          sdk="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$sdk" --licenses >/dev/null || true
+          "$sdk" --install "build-tools;36.0.0" >/dev/null
+          tools="$ANDROID_HOME/build-tools/36.0.0"
+          APK=files-android.apk
+          # The key exists only for this step, and is gone after it.
+          key=$(mktemp)
+          trap 'rm -f "$key"' EXIT
+          printf '%s' "$ANDROID_KEYSTORE" | base64 -d >"$key"
+          FILES_KS_PASS=$(printf '%s' "$ANDROID_KEYSTORE_PASSWORD" | tr -d '\r\n') "$tools/apksigner" sign \
+            --ks "$key" --ks-type PKCS12 --ks-key-alias files --ks-pass env:FILES_KS_PASS --key-pass env:FILES_KS_PASS \
+            --out "$APK" unsigned/files-unsigned.apk
+          rm -f "$key"
+          # Signed with Files' key, not some other one.
+          got=$("$tools/apksigner" verify --print-certs "$APK" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+          [ "$got" = "$(cat release-cert.sha256)" ] || { echo "signed with $got, not Files' key" >&2; exit 1; }
+          sha256sum "$APK" >"$APK.sha256"
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          short=$(echo "$GITHUB_SHA" | cut -c1-7)
+          gh release create "build-$short" --target "$GITHUB_SHA" --latest \
+            --title "Files $short" \
+            --notes "Files for Android 6 and newer, built from $GITHUB_SHA. A privacy-first fork of Material Files by Hai Zhang (GPLv3). Signed with Files' key; its certificate's SHA-256 is $(cat release-cert.sha256)." \
+            files-android.apk files-android.apk.sha256

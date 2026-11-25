@@ -37,21 +37,18 @@
 }
 -keepnames class me.zhanghai.android.files.** implements android.os.Parcelable
 
-# Apache FtpServer
--keepclassmembers class * implements org.apache.mina.core.service.IoProcessor {
-    public <init>(java.util.concurrent.ExecutorService);
-    public <init>(java.util.concurrent.Executor);
-    public <init>();
+# No logs: calls to Android's log, and stack traces printed (which Android
+# logs too), are taken out of the app as built.
+-assumenosideeffects class android.util.Log {
+    public static boolean isLoggable(java.lang.String, int);
+    public static int v(...);
+    public static int d(...);
+    public static int i(...);
+    public static int w(...);
+    public static int e(...);
+    public static int wtf(...);
+    public static int println(...);
 }
-
-# Bouncy Castle
--keep class org.bouncycastle.jcajce.provider.** { *; }
--keep class org.bouncycastle.jce.provider.** { *; }
-
-# SMBJ
--dontwarn javax.el.**
--dontwarn org.ietf.jgss.**
--dontwarn sun.security.x509.X509Key
-
-# SMBJ-RPC
--dontwarn java.rmi.UnmarshalException
+-assumenosideeffects class java.lang.Throwable {
+    public void printStackTrace();
+}

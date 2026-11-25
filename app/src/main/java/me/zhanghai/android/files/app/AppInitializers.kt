@@ -5,32 +5,20 @@
 
 package me.zhanghai.android.files.app
 
-import android.os.AsyncTask
 import android.os.Build
 import android.webkit.WebView
-import jcifs.context.SingletonContext
 import me.zhanghai.android.files.BuildConfig
 import me.zhanghai.android.files.coil.initializeCoil
 import me.zhanghai.android.files.filejob.fileJobNotificationTemplate
-import me.zhanghai.android.files.ftpserver.ftpServerServiceNotificationTemplate
 import me.zhanghai.android.files.hiddenapi.HiddenApi
 import me.zhanghai.android.files.provider.FileSystemProviders
 import me.zhanghai.android.files.settings.Settings
-import me.zhanghai.android.files.storage.FtpServerAuthenticator
-import me.zhanghai.android.files.storage.SftpServerAuthenticator
-import me.zhanghai.android.files.storage.SmbServerAuthenticator
 import me.zhanghai.android.files.storage.StorageVolumeListLiveData
-import me.zhanghai.android.files.storage.WebDavServerAuthenticator
 import me.zhanghai.android.files.theme.custom.CustomThemeHelper
 import me.zhanghai.android.files.theme.night.NightModeHelper
-import java.util.Properties
-import me.zhanghai.android.files.provider.ftp.client.Client as FtpClient
-import me.zhanghai.android.files.provider.sftp.client.Client as SftpClient
-import me.zhanghai.android.files.provider.smb.client.Client as SmbClient
-import me.zhanghai.android.files.provider.webdav.client.Client as WebDavClient
 
 val appInitializers = listOf(
-    ::initializeFirebase,
+    ::initializeQuietCrashes,
     ::disableHiddenApiChecks,
     ::initializeWebViewDebugging,
     ::initializeCoil,
@@ -42,10 +30,16 @@ val appInitializers = listOf(
     ::createNotificationChannels
 )
 
-private fun initializeFirebase() {
-//#ifdef NONFREE
-    me.zhanghai.android.files.nonfree.FirebaseInitializer.initialize()
-//#endif
+/**
+ * No logs: if Files ever crashes, it just closes. Android's own crash
+ * handler would write what went wrong (which can name your files) to the
+ * phone's log, where other tools can read it; this one writes nothing.
+ */
+private fun initializeQuietCrashes() {
+    Thread.setDefaultUncaughtExceptionHandler { _, _ ->
+        android.os.Process.killProcess(android.os.Process.myPid())
+        kotlin.system.exitProcess(10)
+    }
 }
 
 private fun disableHiddenApiChecks() {
@@ -61,19 +55,6 @@ private fun initializeWebViewDebugging() {
 private fun initializeFileSystemProviders() {
     FileSystemProviders.install()
     FileSystemProviders.overflowWatchEvents = true
-    // SingletonContext.init() calls NameServiceClientImpl.initCache() which connects to network.
-    AsyncTask.THREAD_POOL_EXECUTOR.execute {
-        SingletonContext.init(
-            Properties().apply {
-                setProperty("jcifs.netbios.cachePolicy", "0")
-                setProperty("jcifs.smb.client.maxVersion", "SMB1")
-            }
-        )
-    }
-    FtpClient.authenticator = FtpServerAuthenticator
-    SftpClient.authenticator = SftpServerAuthenticator
-    SmbClient.authenticator = SmbServerAuthenticator
-    WebDavClient.authenticator = WebDavServerAuthenticator
 }
 
 private fun initializeLiveDataObjects() {
@@ -95,8 +76,7 @@ private fun createNotificationChannels() {
         notificationManager.createNotificationChannels(
             listOf(
                 backgroundActivityStartNotificationTemplate.channelTemplate,
-                fileJobNotificationTemplate.channelTemplate,
-                ftpServerServiceNotificationTemplate.channelTemplate
+                fileJobNotificationTemplate.channelTemplate
             ).map { it.create(application) }
         )
     }

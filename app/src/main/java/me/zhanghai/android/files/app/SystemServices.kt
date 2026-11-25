@@ -19,7 +19,6 @@ import androidx.preference.PreferenceManager
 import java.util.concurrent.Executor
 import me.zhanghai.android.files.compat.getSystemServiceCompat
 import me.zhanghai.android.files.compat.mainExecutorCompat
-import okhttp3.OkHttpClient
 
 val appClassLoader = AppProvider::class.java.classLoader
 
@@ -37,7 +36,6 @@ val defaultSharedPreferences: SharedPreferences by lazy {
     PreferenceManager.getDefaultSharedPreferences(application)
 }
 
-val okHttpClient: OkHttpClient by lazy { OkHttpClient() }
 
 val inputMethodManager: InputMethodManager by lazy {
     application.getSystemServiceCompat(InputMethodManager::class.java)

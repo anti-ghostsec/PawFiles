@@ -26,11 +26,12 @@
 
 #include <android/log.h>
 
-#define ALOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
-#define ALOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
-#define ALOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
-#define ALOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
-#define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+/* Files writes nothing to Android's log. */
+#define ALOGV(...) ((void) 0)
+#define ALOGD(...) ((void) 0)
+#define ALOGI(...) ((void) 0)
+#define ALOGW(...) ((void) 0)
+#define ALOGE(...) ((void) 0)
 
 #define LOG_TAG "syscall"
 
