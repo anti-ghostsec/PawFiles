@@ -134,6 +134,7 @@ import me.zhanghai.android.files.viewer.image.ImageViewerActivity
 
 class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.Listener,
     ConfirmReplaceFileDialogFragment.Listener, OpenApkDialogFragment.Listener,
+    OpenArchiveDialogFragment.Listener,
     ConfirmDeleteFilesDialogFragment.Listener, CreateArchiveDialogFragment.Listener,
     RenameFileDialogFragment.Listener, CreateFileDialogFragment.Listener,
     CreateDirectoryDialogFragment.Listener, NavigateToPathDialogFragment.Listener,
@@ -1215,10 +1216,31 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             openApk(file)
             return
         }
+        if (file.isArchiveFile) {
+            openArchive(file)
+            return
+        }
         if (file.isListable) {
             navigateTo(file.listablePath)
             return
         }
+        openFileWithIntent(file, false)
+    }
+
+    private fun openArchive(file: FileItem) {
+        when (Settings.OPEN_ARCHIVE_DEFAULT_ACTION.valueCompat) {
+            OpenArchiveDefaultAction.BROWSE -> browseArchive(file)
+            OpenArchiveDefaultAction.OPEN_WITH -> openArchiveWithApp(file)
+            OpenArchiveDefaultAction.ASK -> OpenArchiveDialogFragment.show(file, this)
+        }
+    }
+
+    override fun browseArchive(file: FileItem) {
+        navigateTo(file.listablePath)
+    }
+
+    // Android asks which app (and offers "Always", which it then remembers).
+    override fun openArchiveWithApp(file: FileItem) {
         openFileWithIntent(file, false)
     }
 

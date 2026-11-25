@@ -39,7 +39,7 @@
     <string name="pref_key_material_design_3">key_material_design_3</string>
     <bool name="pref_default_value_material_design_3">false</bool>
     <string name="pref_key_night_mode">key_night_mode</string>
-    <string name="pref_default_value_night_mode">0</string>
+    <string name="pref_default_value_night_mode">2</string>
     <string-array name="pref_entry_values_night_mode">
         <item>0</item>
         <item>1</item>
@@ -73,6 +73,13 @@
     <string name="pref_key_open_apk_default_action">key_open_apk_default_action</string>
     <string name="pref_default_value_open_apk_default_action">2</string>
     <string-array name="pref_entry_values_open_apk_default_action">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string name="pref_key_open_archive_default_action">key_open_archive_default_action</string>
+    <string name="pref_default_value_open_archive_default_action">2</string>
+    <string-array name="pref_entry_values_open_archive_default_action">
         <item>0</item>
         <item>1</item>
         <item>2</item>

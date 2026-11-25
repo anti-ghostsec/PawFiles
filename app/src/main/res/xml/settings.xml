@@ -96,6 +96,14 @@
             android:entryValues="@array/pref_entry_values_open_apk_default_action"
             app:useSimpleSummaryProvider="true" />
 
+        <rikka.preference.SimpleMenuPreference
+            android:key="@string/pref_key_open_archive_default_action"
+            android:title="@string/settings_open_archive_default_action_title"
+            android:defaultValue="@string/pref_default_value_open_archive_default_action"
+            android:entries="@array/settings_open_archive_default_action_entries"
+            android:entryValues="@array/pref_entry_values_open_archive_default_action"
+            app:useSimpleSummaryProvider="true" />
+
         <SwitchPreferenceCompat
             android:key="@string/pref_key_show_pdf_thumbnail_pre_28"
             android:title="@string/settings_show_pdf_thumbnail_pre_28_title"

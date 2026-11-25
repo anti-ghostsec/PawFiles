@@ -10,6 +10,7 @@
 #   3-settings.png       Settings, the phone in light mode
 #   4-night-on.png       Settings after choosing Night mode: On
 #   5-after-night-on.png the file list after that, the phone still light
+#   6-archive.png        what tapping an archive in Download does
 #   app-log.txt          everything the app wrote to Android's log (should
 #                        be nothing)
 
@@ -25,6 +26,9 @@ adb install -r "$apk"
 adb shell appops set "$pkg" MANAGE_EXTERNAL_STORAGE allow || true
 adb shell pm grant "$pkg" android.permission.POST_NOTIFICATIONS || true
 adb logcat -c || true
+# An archive to tap.
+python3 -I -c "import sys, zipfile; zipfile.ZipFile(sys.argv[1], 'w').writestr('hello.txt', 'hello')" "$out/archive-check.zip"
+adb push "$out/archive-check.zip" /sdcard/Download/archive-check.zip >/dev/null
 
 shot() {
     sleep 5
@@ -62,6 +66,11 @@ shot 4-night-on
 
 open_files
 shot 5-after-night-on
+
+tap "Download"
+sleep 3
+tap "archive-check.zip"
+shot 6-archive
 
 # Whatever the app logged while all that ran: its process, by uid.
 uid=$(adb shell pm list packages -U "$pkg" | sed -n 's/.*uid:\([0-9]*\).*/\1/p' | head -n 1)

@@ -15,6 +15,7 @@ import me.zhanghai.android.files.compat.EnvironmentCompat2
 import me.zhanghai.android.files.filelist.FileSortOptions
 import me.zhanghai.android.files.filelist.FileViewType
 import me.zhanghai.android.files.filelist.OpenApkDefaultAction
+import me.zhanghai.android.files.filelist.OpenArchiveDefaultAction
 import me.zhanghai.android.files.navigation.BookmarkDirectory
 import me.zhanghai.android.files.navigation.StandardDirectorySettings
 import me.zhanghai.android.files.provider.root.RootStrategy
@@ -169,6 +170,13 @@ object Settings {
             R.string.pref_key_open_apk_default_action,
             R.string.pref_default_value_open_apk_default_action,
             OpenApkDefaultAction::class.java
+        )
+
+    val OPEN_ARCHIVE_DEFAULT_ACTION: SettingLiveData<OpenArchiveDefaultAction> =
+        EnumSettingLiveData(
+            R.string.pref_key_open_archive_default_action,
+            R.string.pref_default_value_open_archive_default_action,
+            OpenArchiveDefaultAction::class.java
         )
 
     val SHOW_PDF_THUMBNAIL_PRE_28: SettingLiveData<Boolean> = BooleanSettingLiveData(

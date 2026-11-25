@@ -224,6 +224,10 @@
     <string name="file_job_action_all">Apply this action to all files</string>
 
     <string name="file_open_apk_message">This file is an Android package. Do you want to install it, or view its contents?</string>
+    <string name="file_open_archive_message">Browse this archive in Files, or open it with another app, such as Archives?</string>
+    <string name="file_open_archive_browse">Browse</string>
+    <string name="file_open_archive_open_with">Open with</string>
+    <string name="file_open_archive_remember">Remember my choice</string>
     <string name="file_edit_title" translatable="false">@string/edit</string>
     <string name="file_open_as_title">Open as…</string>
     <string name="file_open_as_title_format">Open “%1$s” as</string>
@@ -788,6 +792,12 @@
     <string-array name="settings_open_apk_default_action_entries">
         <item>Install</item>
         <item>View contents</item>
+        <item>Ask what to do</item>
+    </string-array>
+    <string name="settings_open_archive_default_action_title">Open archive</string>
+    <string-array name="settings_open_archive_default_action_entries">
+        <item>Browse in Files</item>
+        <item>Open with another app</item>
         <item>Ask what to do</item>
     </string-array>
     <string name="settings_show_pdf_thumbnail_pre_28_title">Show thumbnail for PDF documents</string>

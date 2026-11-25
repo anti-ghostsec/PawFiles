@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- So the "Remember my choice" box keeps its state when the screen turns. -->
+    <item name="open_archive_remember" type="id" />
+</resources>
