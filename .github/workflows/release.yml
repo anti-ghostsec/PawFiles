@@ -79,8 +79,16 @@ jobs:
             echo "Files has no network code, crash reporting or analytics" >&2
             exit 1
           fi
-          if grep -rnE 'firebase|crashlytics|google-services|smbj|sshj|jcifs|dav4jvm|ftpserver|commons-net' app/build.gradle build.gradle; then
+          if grep -rnE 'firebase|crashlytics|google-services|smbj|sshj|jcifs|dav4jvm|ftpserver|commons-net|okhttp|coil-network' app/build.gradle build.gradle; then
             echo "Files has no network libraries, crash reporting or analytics" >&2
+            exit 1
+          fi
+          # Nor in the APK as built, whatever a library brought in. R8's
+          # mapping names every class that's in it.
+          map=app/build/outputs/mapping/release/mapping.txt
+          [ -s "$map" ] || { echo "no R8 mapping to check" >&2; exit 1; }
+          if grep -E '^(okhttp3|retrofit2|io\.ktor|com\.android\.volley|org\.apache\.http|org\.chromium\.net|com\.google\.firebase|com\.google\.android\.gms|coil3\.network|net\.schmizz|com\.hierynomus|jcifs|at\.bitfire|org\.apache\.ftpserver|org\.apache\.commons\.net)\.' "$map" | head -20 | grep .; then
+            echo "Files' APK has network, crash reporting or analytics code" >&2
             exit 1
           fi
 

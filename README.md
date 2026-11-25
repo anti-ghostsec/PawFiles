@@ -17,9 +17,11 @@ It keeps what makes Material Files good:
 - **No network at all.** The FTP, SFTP, SMB and WebDAV support is gone, and
   so is the FTP server. Their libraries are gone too: SMBJ, SMBJ-RPC,
   jcifs-ng, sshj, dav4jvm, Apache Commons Net, Apache FtpServer and MINA,
-  Bouncy Castle, Guava and SLF4J. The app has no internet permission; it's
-  removed even if a library asks for it. Every release build checks the APK
-  for network permissions and fails if it finds any.
+  Bouncy Castle, Guava and SLF4J. Thumbnails use Coil 3 instead of Coil 2,
+  which always brought the OkHttp network library with it. The app has no
+  internet permission; it's removed even if a library asks for it. Every
+  release build checks the APK for network permissions and for network
+  libraries, and fails if it finds any.
 - **No crash reporting or analytics.** The Firebase build (Analytics and
   Crashlytics) is gone.
 - **No logs.** Release builds strip every call to Android's log, and every
