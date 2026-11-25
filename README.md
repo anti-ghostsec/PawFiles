@@ -40,7 +40,7 @@ and "Open with").
 
 ## Releases
 
-Every push to `main` builds `files-android.apk` (one APK for every phone)
+Every push to `main` of [PawFiles](https://github.com/anti-ghostsec/PawFiles) builds `files-android.apk` (one APK for every phone)
 and publishes it as the newest release. Signing happens in a separate job
 that runs none of the build's code. The signing certificate's SHA-256 is in
 `release-cert.sha256`.

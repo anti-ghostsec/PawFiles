@@ -7,7 +7,6 @@ package me.zhanghai.android.files.provider.common
 
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import net.schmizz.concurrent.Promise
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
@@ -102,36 +101,5 @@ fun <T> Deferred<T>.asFuture(): Future<T> =
                 throw e
             } catch (e: Exception) {
                 throw ExecutionException(e)
-            }
-    }
-
-fun <T> Promise<T, *>.asFuture(): Future<T> =
-    object : Future<T> {
-        override fun cancel(mayInterruptIfRunning: Boolean): Boolean = false
-
-        override fun isCancelled(): Boolean = false
-
-        override fun isDone(): Boolean = isFulfilled
-
-        @Throws(ExecutionException::class, InterruptedException::class)
-        override fun get(): T = tryRetrieve { retrieve() }
-
-        @Throws(ExecutionException::class, InterruptedException::class, TimeoutException::class)
-        override fun get(timeout: Long, unit: TimeUnit?): T =
-            tryRetrieve { retrieve(timeout, unit) }
-
-        @Throws(ExecutionException::class, InterruptedException::class, TimeoutException::class)
-        private inline fun tryRetrieve(retrieve: () -> T): T =
-            try {
-                retrieve()
-            } catch (e: Exception) {
-                when (val cause = e.cause) {
-                    is InterruptedException -> {
-                        Thread.interrupted()
-                        throw cause
-                    }
-                    is TimeoutException -> throw cause
-                    else -> throw ExecutionException(e)
-                }
             }
     }

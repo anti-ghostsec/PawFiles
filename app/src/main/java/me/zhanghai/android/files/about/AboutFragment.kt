@@ -51,7 +51,7 @@ class AboutFragment : Fragment() {
 
     companion object {
         // This fork's source (GPLv3). Material Files' author is credited below.
-        private val GITHUB_URI = Uri.parse("https://github.com/anti-ghostsec/anoncat-files")
+        private val GITHUB_URI = Uri.parse("https://github.com/anti-ghostsec/PawFiles")
         private val AUTHOR_RESUME_URI = Uri.parse("https://resume.zhanghai.me/")
         private val AUTHOR_GITHUB_URI = Uri.parse("https://github.com/zhanghai")
         private val AUTHOR_TWITTER_URI = Uri.parse("https://twitter.com/zhanghai95")
