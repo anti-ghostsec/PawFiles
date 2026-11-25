@@ -70,7 +70,7 @@ shot 5-after-night-on
 # Download, opened directly (reading the screen of the file list can hang
 # uiautomator), then a tap on its first row: the archive, its only file.
 adb shell am force-stop "$pkg"
-adb shell am start -W -a android.intent.action.VIEW -d file:///sdcard/Download -t inode/directory \
+adb shell am start -W -a android.intent.action.VIEW -d file:///storage/emulated/0/Download -t inode/directory \
     -n "$pkg/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
 sleep 5
 size=$(adb shell wm size | sed -n 's/.*: *\([0-9]*\)x\([0-9]*\).*/\1 \2/p' | tail -n 1)
