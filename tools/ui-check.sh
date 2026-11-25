@@ -40,7 +40,7 @@ open_files() {
 }
 # Taps the middle of the first thing on screen whose text is $1.
 tap() {
-    adb shell uiautomator dump /sdcard/ui.xml >/dev/null
+    timeout 60 adb shell uiautomator dump /sdcard/ui.xml >/dev/null
     adb shell cat /sdcard/ui.xml >"$out/ui.xml"
     xy=$(python3 -I "$tools/ui-find.py" "$out/ui.xml" "$1")
     echo "tap '$1' at $xy"
@@ -67,9 +67,15 @@ shot 4-night-on
 open_files
 shot 5-after-night-on
 
-tap "Download"
-sleep 3
-tap "archive-check.zip"
+# Download, opened directly (reading the screen of the file list can hang
+# uiautomator), then a tap on its first row: the archive, its only file.
+adb shell am force-stop "$pkg"
+adb shell am start -W -a android.intent.action.VIEW -d file:///sdcard/Download -t inode/directory \
+    -n "$pkg/me.zhanghai.android.files.filelist.FileListActivity" >/dev/null
+sleep 5
+size=$(adb shell wm size | sed -n 's/.*: *\([0-9]*\)x\([0-9]*\).*/\1 \2/p' | tail -n 1)
+set -- $size
+adb shell input tap $(($1 * 35 / 100)) $(($2 * 27 / 100))
 shot 6-archive
 
 # Whatever the app logged while all that ran: its process, by uid.
